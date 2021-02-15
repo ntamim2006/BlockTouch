@@ -1,9 +1,5 @@
 package com.nt.blocktouch;
 
-import androidx.appcompat.app.AppCompatActivity;
-
-import android.os.Bundle;
-
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Build;
@@ -11,6 +7,9 @@ import android.os.Bundle;
 import android.provider.Settings;
 import android.view.View;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
     private static final int SYSTEM_ALERT_WINDOW_PERMISSION = 2084;
@@ -25,6 +24,18 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
 
         findViewById(R.id.buttonCreateWidget).setOnClickListener(this);
+        startService();
+    }
+
+    public void startService() {
+//        String input = editTextInput.getText().toString();
+        Intent serviceIntent = new Intent(this, ExampleService.class);
+        serviceIntent.putExtra("inputExtra", "dsdsdsdv");
+        ContextCompat.startForegroundService(this, serviceIntent);
+    }
+    public void stopService(View v) {
+        Intent serviceIntent = new Intent(this, ExampleService.class);
+        stopService(serviceIntent);
     }
 
 
@@ -36,11 +47,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View v) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
-            startService(new Intent(MainActivity.this, FloatingViewService.class));
-            finish();
-        } else if (Settings.canDrawOverlays(this)) {
-            startService(new Intent(MainActivity.this, FloatingViewService.class));
+        if (Settings.canDrawOverlays(this)) {
+            Intent intent = new Intent(MainActivity.this, FloatingViewService.class);
+            intent.putExtra("your_key_here", "from_main");
+            startService(intent);
             finish();
         } else {
             askPermission();
