@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
+
+    <!-- this is the expanded layout -->
+    <RelativeLayout
+        android:id="@+id/layoutExpanded"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="start|top"
+        android:gravity="start|top"
+        android:orientation="horizontal"
+        android:visibility="visible">
+        <!--            android:background="@color/black"-->
+
+
+        <ImageButton
+            android:id="@+id/actionButton"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+            android:layout_alignParentStart="true"
+            android:background="@drawable/lock_sign_close_2" />
+
+    </RelativeLayout>
+</RelativeLayout>

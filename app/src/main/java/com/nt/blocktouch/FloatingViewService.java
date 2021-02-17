@@ -45,7 +45,7 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("eee", intent.hasExtra("your_key_here")+"");
+        Log.d("eee", intent.getStringExtra("your_key_here")+"");
 
         ifHasExtra = intent.hasExtra("your_key_here");
 
@@ -80,7 +80,7 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
 
         expandedView = mFloatingView.findViewById(R.id.layoutExpanded);
-        imageLock = mFloatingView.findViewById(R.id.expClose);
+        imageLock = mFloatingView.findViewById(R.id.actionButton);
         //adding click listener to close button and expanded view
         imageLock.setOnClickListener(this);
         mFloatingView.findViewById(R.id.exp_iv).setOnClickListener(this);
@@ -154,7 +154,7 @@ public class FloatingViewService extends Service implements View.OnClickListener
         switch (v.getId()) {
 
 
-            case R.id.expClose:
+            case R.id.actionButton:
                 if(handler!=null){
                     handler.removeCallbacksAndMessages(null);
                 }
