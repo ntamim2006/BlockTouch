@@ -32,6 +32,8 @@
         <receiver android:name="SimpleWidgetProvider" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.nt.blocktouch.SimpleWidgetProvider.ACTION_CLICK" />
+
             </intent-filter>
             <meta-data android:name="android.appwidget.provider"
                 android:resource="@xml/simple_widget_info" />

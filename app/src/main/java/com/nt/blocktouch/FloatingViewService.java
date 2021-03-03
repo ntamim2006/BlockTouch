@@ -13,6 +13,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 public class FloatingViewService extends Service implements View.OnClickListener {
@@ -33,13 +34,14 @@ public class FloatingViewService extends Service implements View.OnClickListener
     boolean ifHasExtra = false;
 
     private boolean ifLock = false;
-    ImageView imageLock;
+    ImageView imageLock, minusBtn, exitBtn;
     WindowManager.LayoutParams params;
     int LAYOUT_FLAG;
     public FloatingViewService() {
 
     }
 
+    TextView textView;
 
 
 
@@ -53,7 +55,9 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
         //getting the widget layout from xml using layout inflater
         mFloatingView = LayoutInflater.from(this).inflate(R.layout.layout_floating_widget, null);
-
+        textView = mFloatingView.findViewById(R.id.textView);
+        minusBtn = mFloatingView.findViewById(R.id.button_minus);
+        exitBtn = mFloatingView.findViewById(R.id.exp_iv);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -85,7 +89,44 @@ public class FloatingViewService extends Service implements View.OnClickListener
         imageLock.setOnClickListener(this);
         mFloatingView.findViewById(R.id.exp_iv).setOnClickListener(this);
         expandedView.setOnClickListener(this);
+        textView.setOnClickListener(this);
+        minusBtn.setOnClickListener(this);
         b = expandedView.findViewById(R.id.button);
+
+//        //adding an touchlistener to make drag movement of the floating widget
+//        mFloatingView.findViewById(R.id.layoutExpanded).setOnTouchListener(new View.OnTouchListener() {
+//
+//
+//            private int initialX;
+//            private int initialY;
+//            private float initialTouchX;
+//            private float initialTouchY;
+//
+//            @Override
+//            public boolean onTouch(View v, MotionEvent event) {
+//                switch (event.getAction()) {
+//                    case MotionEvent.ACTION_DOWN:
+//                        initialX = params.x;
+//                        initialY = params.y;
+//                        initialTouchX = event.getRawX();
+//                        initialTouchY = event.getRawY();
+//                        return true;
+//
+//                    case MotionEvent.ACTION_UP:
+//                        //when the drag is ended switching the state of the widget
+//
+//                        return true;
+//
+//                    case MotionEvent.ACTION_MOVE:
+//                        //this code is helping the widget to move around the screen with fingers
+//                        params.x = initialX + (int) (event.getRawX() - initialTouchX);
+//                        params.y = initialY + (int) (event.getRawY() - initialTouchY);
+//                        mWindowManager.updateViewLayout(mFloatingView, params);
+//                        return true;
+//                }
+//                return false;
+//            }
+//        });
 
 
         b.setOnClickListener(v -> {
@@ -104,6 +145,8 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
                         openPhone();
 
+                        textView.setVisibility(View.INVISIBLE);
+                        imageLock.setVisibility(View.VISIBLE);
 
                         handler4 = new Handler();
                         handler4.postDelayed(() -> {
@@ -153,6 +196,25 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
         switch (v.getId()) {
 
+            case R.id.textView:
+
+                if(ifLock){
+                    imageLock.setImageResource(R.drawable.lock_sign_close_2);
+                }
+                else{
+                    imageLock.setImageResource(R.drawable.lock_sign_open);
+                }
+                minusBtn.setImageResource(R.drawable.minus_btn_icon);
+                exitBtn.setImageResource(R.drawable.close_btn_icon);
+
+                textView.setVisibility(View.INVISIBLE);
+                imageLock.setVisibility(View.VISIBLE);
+                minusBtn.setVisibility(View.VISIBLE);
+                exitBtn.setVisibility(View.VISIBLE);
+
+
+
+                break;
 
             case R.id.actionButton:
                 if(handler!=null){
@@ -204,6 +266,16 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
                 break;
 
+            case R.id.button_minus:
+
+                textView.setVisibility(View.VISIBLE);
+                imageLock.setVisibility(View.INVISIBLE);
+                minusBtn.setVisibility(View.INVISIBLE);
+                exitBtn.setVisibility(View.INVISIBLE);
+
+                break;
+
+
 //                case R.id.button:
 //                //closing the widget
 //                    b = v.findViewById(R.id.button);
@@ -226,6 +298,7 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
 
         imageLock.setImageResource(R.drawable.lock_sign_close_2);
+        minusBtn.setImageResource(R.drawable.minus_btn_icon);
         mFloatingView.findViewById(R.id.exp_iv).setVisibility(View.INVISIBLE);
         Toast.makeText(this, "מסך המכשיר נעול", Toast.LENGTH_SHORT).show();
         b.setVisibility(View.VISIBLE);
@@ -234,8 +307,19 @@ public class FloatingViewService extends Service implements View.OnClickListener
         handler3.postDelayed(() -> {
             //write your code here to be executed after 1 second
             imageLock.setImageResource(R.drawable.lock_sign_close_2_dimmed);
+            minusBtn.setImageResource(R.drawable.minus_btn_icon_dimmed);
 
-        }, 2000);
+            new Handler().postDelayed(() -> {
+                //write your code here to be executed after 1 second
+                textView.setVisibility(View.VISIBLE);
+                imageLock.setVisibility(View.INVISIBLE);
+                minusBtn.setVisibility(View.INVISIBLE);
+
+            }, 1000);
+
+
+
+        }, 1000);
         ifLock=!ifLock;
 
         params.gravity = Gravity.TOP | Gravity.START;        //Initially view will be added to top-left corner
@@ -257,12 +341,16 @@ public class FloatingViewService extends Service implements View.OnClickListener
         ((ImageView)mFloatingView.findViewById(R.id.exp_iv)).setImageResource(R.drawable.close_btn_icon);
 
         imageLock.setImageResource(R.drawable.lock_sign_open);
+        minusBtn.setImageResource(R.drawable.minus_btn_icon);
+
         Toast.makeText(this, "מסך המכשיר פעיל", Toast.LENGTH_SHORT).show();
 
         handler = new Handler();
         handler.postDelayed(() -> {
             //write your code here to be executed after 1 second
             imageLock.setImageResource(R.drawable.lock_sign_open_dimmed);
+            minusBtn.setImageResource(R.drawable.minus_btn_icon_dimmed);
+
             ((ImageView)mFloatingView.findViewById(R.id.exp_iv)).setImageResource(R.drawable.close_btn_icon_dimmed);
             over_time = true;
 

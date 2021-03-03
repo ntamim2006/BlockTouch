@@ -47,5 +47,5 @@ public class SimpleWidgetProvider extends AppWidgetProvider {
         }
     }
 
-
+   
 }
