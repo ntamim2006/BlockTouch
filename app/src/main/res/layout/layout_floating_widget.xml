@@ -9,15 +9,21 @@
 
     <RelativeLayout
         android:id="@+id/layoutExpanded"
-
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="50dp">
 
+        <Button
+            android:id="@+id/background_btn"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/lin"
+            android:layout_weight="1"
+            android:background="@null"
+            android:visibility="gone" />
 
         <LinearLayout
             android:id="@+id/lin"
-
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="start|top"
@@ -27,43 +33,68 @@
             android:visibility="visible">
 
 
-            <ImageView
-                android:id="@+id/button_minus"
-                android:layout_width="20dp"
-                android:layout_height="20dp"
-                android:src="@drawable/minus_btn_icon"
-                android:visibility="gone" />
+            <RelativeLayout
+                android:id="@+id/collapse_view"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_marginTop="3dp"
+                android:orientation="vertical"
+                android:visibility="visible">
 
-            <ImageView
-                android:id="@+id/exp_iv"
-                android:layout_width="28dp"
-                android:layout_height="28dp"
-                android:layout_alignParentStart="false"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="5dp"
-                android:src="@drawable/close_btn_icon"
-                android:visibility="visible" />
+                <!--Icon of floating widget -->
+                <ImageView
+                    android:id="@+id/blockTouchButton"
+                    android:layout_width="60dp"
+                    android:layout_height="60dp"
+                    android:layout_marginTop="8dp"
+                    android:layout_marginBottom="5dp"
+                    android:src="@drawable/lock_sign_open"
+                    tools:ignore="ContentDescription" />
 
-            <ImageView
-                android:id="@+id/actionButton"
-                android:layout_width="55dp"
-                android:layout_height="55dp"
-                android:layout_alignParentStart="true"
-                android:layout_gravity="center_vertical"
-                android:layout_marginStart="5dp"
-                android:layout_marginTop="5dp"
-                android:layout_marginEnd="5dp"
-                android:layout_marginBottom="5dp"
-                android:src="@drawable/lock_sign_open" />
+                <!--Close button-->
+                <ImageView
+                    android:id="@+id/close_btn"
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:src="@drawable/close_btn_icon"
+                    tools:ignore="ContentDescription" />
+            </RelativeLayout>
+
+            <!--            <ImageView-->
+<!--                android:id="@+id/exp_iv"-->
+<!--                android:layout_width="28dp"-->
+<!--                android:layout_height="28dp"-->
+<!--                android:layout_alignParentStart="false"-->
+<!--                android:layout_gravity="center_vertical"-->
+<!--                android:layout_marginStart="5dp"-->
+<!--                android:src="@drawable/close_btn_icon"-->
+<!--                android:visibility="visible" />-->
+
+            <!--            <ImageView-->
+<!--                android:id="@+id/actionButton"-->
+<!--                android:layout_width="55dp"-->
+<!--                android:layout_height="55dp"-->
+<!--                android:layout_alignParentStart="true"-->
+<!--                android:layout_gravity="center_vertical"-->
+<!--                android:layout_marginStart="5dp"-->
+<!--                android:layout_marginTop="5dp"-->
+<!--                android:layout_marginEnd="3dp"-->
+<!--                android:layout_marginBottom="5dp"-->
+<!--                android:layout_weight="1"-->
+<!--                android:src="@drawable/lock_sign_open"-->
+<!--                android:visibility="visible" />-->
 
             <ImageView
                 android:id="@+id/drawer"
                 android:layout_width="25dp"
-                android:layout_height="45dp"
+                android:layout_height="55dp"
                 android:layout_gravity="center_vertical"
                 android:layout_marginTop="5dp"
                 android:layout_marginBottom="5dp"
+                android:paddingTop="5dp"
                 android:paddingEnd="5dp"
+                android:paddingBottom="5dp"
                 android:src="@drawable/open_drawer_icon"
                 android:textColor="?android:attr/windowBackground"
                 android:textSize="36sp"
@@ -71,15 +102,8 @@
 
         </LinearLayout>
 
-        <Button
-            android:id="@+id/button"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_below="@id/lin"
-            android:background="@null"
-            android:onClick="onClick"
-            android:text=""
-            android:visibility="gone" />
+
+
     </RelativeLayout>
 
     <!-- this is the expanded layout -->

@@ -1,16 +1,20 @@
 package com.nt.blocktouch;
 
+import android.annotation.SuppressLint;
 import android.app.Service;
 import android.content.Intent;
 import android.graphics.PixelFormat;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -18,26 +22,23 @@ import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
-public class FloatingViewService extends Service implements View.OnClickListener {
+public class FloatingViewService extends Service implements View.OnClickListener{
 
 
     private WindowManager mWindowManager;
     private View mFloatingView;
-    private View collapsedView;
     private View expandedView;
-    boolean over_time = false;
     Handler handler;
     Handler handler2;
     Handler handler3;
     Handler handler4;
     Handler handler_double;
-    Button b;
     int i=0;
     boolean ifHasExtra = false;
     private boolean ifLock = false;
     private boolean ifLayoutOpen = true;
-    private boolean ifDim = false;
-
+    private boolean ifKidMode = false;
+    Button b;
     ImageView imageLock, minusBtn, exitBtn, drawer;
     WindowManager.LayoutParams params;
     int LAYOUT_FLAG;
@@ -48,10 +49,9 @@ public class FloatingViewService extends Service implements View.OnClickListener
     LinearLayout lin;
 
 
-
+    @SuppressLint("ClickableViewAccessibility")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d("eee", intent.getStringExtra("your_key_here")+"");
 
         ifHasExtra = intent.hasExtra("your_key_here");
 
@@ -60,15 +60,17 @@ public class FloatingViewService extends Service implements View.OnClickListener
         //getting the widget layout from xml using layout inflater
         mFloatingView = LayoutInflater.from(this).inflate(R.layout.layout_floating_widget, null);
         drawer = mFloatingView.findViewById(R.id.drawer);
-        minusBtn = mFloatingView.findViewById(R.id.button_minus);
-        exitBtn = mFloatingView.findViewById(R.id.exp_iv);
+        exitBtn = mFloatingView.findViewById(R.id.close_btn);
         lin = mFloatingView.findViewById(R.id.lin);
+        b = mFloatingView.findViewById(R.id.background_btn);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
         } else {
             LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_PHONE;
         }
+
+
 
         //setting the layout parameters
         params = new WindowManager.LayoutParams(
@@ -89,50 +91,18 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
 
         expandedView = mFloatingView.findViewById(R.id.layoutExpanded);
-        imageLock = mFloatingView.findViewById(R.id.actionButton);
+        imageLock = mFloatingView.findViewById(R.id.blockTouchButton);
+
         //adding click listener to close button and expanded view
         imageLock.setOnClickListener(this);
-        mFloatingView.findViewById(R.id.exp_iv).setOnClickListener(this);
+        mFloatingView.findViewById(R.id.close_btn).setOnClickListener(this);
         expandedView.setOnClickListener(this);
         drawer.setOnClickListener(this);
         minusBtn.setOnClickListener(this);
-        b = mFloatingView.findViewById(R.id.button);
 
-//        //adding an touchlistener to make drag movement of the floating widget
-//        mFloatingView.findViewById(R.id.layoutExpanded).setOnTouchListener(new View.OnTouchListener() {
-//
-//
-//            private int initialX;
-//            private int initialY;
-//            private float initialTouchX;
-//            private float initialTouchY;
-//
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event) {
-//                switch (event.getAction()) {
-//                    case MotionEvent.ACTION_DOWN:
-//                        initialX = params.x;
-//                        initialY = params.y;
-//                        initialTouchX = event.getRawX();
-//                        initialTouchY = event.getRawY();
-//                        return true;
-//
-//                    case MotionEvent.ACTION_UP:
-//                        //when the drag is ended switching the state of the widget
-//
-//                        return true;
-//
-//                    case MotionEvent.ACTION_MOVE:
-//                        //this code is helping the widget to move around the screen with fingers
-//                        params.x = initialX + (int) (event.getRawX() - initialTouchX);
-//                        params.y = initialY + (int) (event.getRawY() - initialTouchY);
-//                        mWindowManager.updateViewLayout(mFloatingView, params);
-//                        return true;
-//                }
-//                return false;
-//            }
-//        });
-
+        if(!ifHasExtra){
+            closePhone(false);
+        }
 
         b.setOnClickListener(v -> {
 
@@ -142,23 +112,17 @@ public class FloatingViewService extends Service implements View.OnClickListener
             handler_double.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    if(i==1) {
-
-                        //single click
-
-                    }else if(i==2){
+                    if(i==2){
                         lin.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.shape_with_corner_back));
 
-                        openPhone();
+                        openPhone(true);
+                        //if you want close automatically
+//                        handler4 = new Handler();
+//                        handler4.postDelayed(() -> {
+//                            //write your code here to be executed after 1 second
+//                            closePhone(true);
 //
-//                        imageLock.setVisibility(View.VISIBLE);
-//
-                        handler4 = new Handler();
-                        handler4.postDelayed(() -> {
-                            //write your code here to be executed after 1 second
-                            closePhone(true);
-
-                        }, 1500);
+//                        }, 1500);
 
                     }
                     i=0;
@@ -169,17 +133,12 @@ public class FloatingViewService extends Service implements View.OnClickListener
         });
 
 
-        if(!ifHasExtra){
-            closePhone(false);
-        }
-
-
-
-
         return super.onStartCommand(intent, flags, startId);
     }
 
-    @Override
+
+
+                @Override
     public IBinder onBind(Intent intent) {
             return null;
     }
@@ -189,6 +148,8 @@ public class FloatingViewService extends Service implements View.OnClickListener
         super.onCreate();
 
     }
+
+
 
     @Override
     public void onDestroy() {
@@ -206,94 +167,74 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
                 if(ifLayoutOpen){
                     closeDrawer();
+
+
                 }else{
                     openDrawer();
+                    Animation rightSwipe = AnimationUtils.loadAnimation(this, R.anim.left_to_right_animation);
+
+
+                    lin.startAnimation(rightSwipe);
                 }
 
 
 
                 break;
 
-            case R.id.actionButton:
-                if(handler!=null){
-                    handler.removeCallbacksAndMessages(null);
-                }
-                if(handler2!=null){
-                    handler2.removeCallbacksAndMessages(null);
-                }
-                if(handler3!=null){
-                    handler3.removeCallbacksAndMessages(null);
-                }
-                if(handler4!=null){
-                    handler4.removeCallbacksAndMessages(null);
-                }
-                if(handler_double!=null){
-                    handler_double.removeCallbacksAndMessages(null);
-                }
+            case R.id.blockTouchButton:
 
-                //switching views
-                if(ifLock){
-                    openPhone();
-                }else{
-                    closePhone(false);
-                }
 
-                break;
+                    if(handler!=null){
+                        handler.removeCallbacksAndMessages(null);
+                    }
+                    if(handler2!=null){
+                        handler2.removeCallbacksAndMessages(null);
+                    }
+                    if(handler3!=null){
+                        handler3.removeCallbacksAndMessages(null);
+                    }
+                    if(handler4!=null){
+                        handler4.removeCallbacksAndMessages(null);
+                    }
+                    if(handler_double!=null){
+                        handler_double.removeCallbacksAndMessages(null);
+                    }
 
-            case R.id.exp_iv:
-                //closing the widget
-                if(handler!=null){
-                    handler.removeCallbacksAndMessages(null);
-                }
-                if(handler2!=null){
-                    handler2.removeCallbacksAndMessages(null);
-                }
-                if(handler3!=null){
-                    handler3.removeCallbacksAndMessages(null);
-                }
-                if(handler4!=null){
-                    handler4.removeCallbacksAndMessages(null);
-                }
-                if(handler_double!=null){
-                    handler_double.removeCallbacksAndMessages(null);
-                }
-                stopSelf();
-
-                break;
-
-            case R.id.button_minus:
-
-                drawer.setVisibility(View.VISIBLE);
-                imageLock.setVisibility(View.GONE);
-                minusBtn.setVisibility(View.GONE);
-                exitBtn.setVisibility(View.GONE);
+                    //switching views
+                    if(ifLock){
+                        openPhone(false);
+                    }else{
+                        closePhone(false);
+                    }
 
                 break;
 
 
-//                case R.id.button:
-//                //closing the widget
-//                    b = v.findViewById(R.id.button);
-//                    b.setVisibility(View.GONE);
-//
-//                break;
-
-
+            case R.id.close_btn:
+                    stopSelf();
+                break;
 
         }
     }
 
     private void openDrawer() {
-        drawer.setImageResource(R.drawable.open_drawer_icon);
+        if(handler3!=null){
+            handler3.removeCallbacksAndMessages(null);
+        }
         lin.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.shape_with_corner_back));
+
         if(ifLock){
             imageLock.setImageResource(R.drawable.lock_sign_close_2);
         }
         else{
             imageLock.setImageResource(R.drawable.lock_sign_open);
         }
+
+
         exitBtn.setImageResource(R.drawable.close_btn_icon);
-        drawer.setVisibility(View.VISIBLE);
+
+        drawer.setImageResource(R.drawable.open_drawer_icon);
+
         imageLock.setVisibility(View.VISIBLE);
         exitBtn.setVisibility(View.VISIBLE);
         handler3 = new Handler();
@@ -302,6 +243,7 @@ public class FloatingViewService extends Service implements View.OnClickListener
             dim();
         }, 2000);
         ifLayoutOpen=true;
+
     }
 
     private void dim() {
@@ -311,16 +253,43 @@ public class FloatingViewService extends Service implements View.OnClickListener
         else{
             imageLock.setImageResource(R.drawable.lock_sign_open_dimmed);
         }
+
         exitBtn.setImageResource(R.drawable.close_btn_icon_dimmed);
         drawer.setImageResource(R.drawable.open_drawer_icon_dim);
     }
 
     private void closeDrawer() {
-        lin.setBackground(null);
+        Animation rightSwipe = AnimationUtils.loadAnimation(this, R.anim.right_to_left_animation);
+        rightSwipe.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
 
-        imageLock.setVisibility(View.GONE);
-        exitBtn.setVisibility(View.GONE);
-        ifLayoutOpen=false;
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                lin.setBackground(null);
+                imageLock.setVisibility(View.GONE);
+                exitBtn.setVisibility(View.GONE);
+                ifLayoutOpen=false;
+
+                Animation fadeIn = new AlphaAnimation(0, 1);
+                fadeIn.setInterpolator(new DecelerateInterpolator()); //add this
+                fadeIn.setDuration(1300);
+                drawer.startAnimation(fadeIn);
+
+                dim();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+        lin.startAnimation(rightSwipe);
+        ifLayoutOpen = false;
+
     }
 
 
@@ -346,6 +315,7 @@ public class FloatingViewService extends Service implements View.OnClickListener
         if(ifToClose) {
             handler3.postDelayed(this::closeDrawer, 1000);
 
+
         }else {
             handler3.postDelayed(() -> {
                 dim();
@@ -362,7 +332,9 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
     }
 
-    private void openPhone() {
+    private void openPhone(boolean fromClickTwice) {
+        b.setVisibility(View.GONE);
+
         params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -370,12 +342,18 @@ public class FloatingViewService extends Service implements View.OnClickListener
                 WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                 PixelFormat.TRANSLUCENT);
 
-        ((ImageView)mFloatingView.findViewById(R.id.exp_iv)).setImageResource(R.drawable.close_btn_icon);
+        ((ImageView)mFloatingView.findViewById(R.id.close_btn)).setImageResource(R.drawable.close_btn_icon);
+        ((ImageView)mFloatingView.findViewById(R.id.close_btn)).setVisibility(View.VISIBLE);
         imageLock.setVisibility(View.VISIBLE);
         drawer.setImageResource(R.drawable.open_drawer_icon);
 
 
         imageLock.setImageResource(R.drawable.lock_sign_open);
+
+        if(fromClickTwice){
+            Animation rightSwipe = AnimationUtils.loadAnimation(this, R.anim.left_to_right_animation);
+            lin.startAnimation(rightSwipe);
+        }
 
         Toast.makeText(this, "מסך המכשיר פעיל", Toast.LENGTH_SHORT).show();
         ifLock=!ifLock;
@@ -386,7 +364,6 @@ public class FloatingViewService extends Service implements View.OnClickListener
             dim();
             }, 1500);
 
-        b.setVisibility(View.GONE);
 
         params.gravity = Gravity.TOP | Gravity.START;        //Initially view will be added to top-left corner
         params.x = 0;

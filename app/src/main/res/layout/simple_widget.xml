@@ -17,7 +17,7 @@
 
 
         <ImageButton
-            android:id="@+id/actionButton"
+            android:id="@+id/blockTouchButton"
             android:layout_width="65dp"
             android:layout_height="65dp"
             android:layout_alignParentStart="true"

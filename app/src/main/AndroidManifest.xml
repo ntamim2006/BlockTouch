@@ -12,7 +12,6 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/lock_sign_open_new_icon_red"
         android:theme="@style/Theme.Blocktouch">
-        <activity android:name=".AddBubble"></activity>
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -27,7 +26,7 @@
             android:exported="false"
             android:visibleToInstantApps="true"
             />
-        <service android:name=".ExampleService" />
+        <service android:name=".NotificationService" />
 
         <receiver android:name="SimpleWidgetProvider" >
             <intent-filter>

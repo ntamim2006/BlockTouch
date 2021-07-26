@@ -28,18 +28,22 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         findViewById(R.id.buttonCreateWidget).setOnClickListener(this);
         findViewById(R.id.buttonStopNotification).setOnClickListener(this);
         findViewById(R.id.buttonStartNotification).setOnClickListener(this);
-        startService();
+        Intent intent = new Intent(MainActivity.this, FloatingViewService.class);
+        intent.putExtra("your_key_here", "from_main");
+        startService(intent);
+
     }
 
+
+
     public void startService() {
-//        String input = editTextInput.getText().toString();
-        serviceIntent = new Intent(this, ExampleService.class);
-        serviceIntent.putExtra("inputExtra", "dsdsdsdv");
+        serviceIntent = new Intent(this, NotificationService.class);
+        serviceIntent.putExtra("inputExtra", "serviceIntentExtra");
         ContextCompat.startForegroundService(this, serviceIntent);
     }
 
     public void stopService(View v) {
-        serviceIntent = new Intent(this, ExampleService.class);
+        serviceIntent = new Intent(this, NotificationService.class);
         stopService(serviceIntent);
     }
 
@@ -80,4 +84,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     }
+
+
 }
