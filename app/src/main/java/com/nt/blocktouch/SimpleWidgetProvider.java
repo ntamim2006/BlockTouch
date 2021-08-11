@@ -19,7 +19,7 @@ public class SimpleWidgetProvider extends AppWidgetProvider {
 
 
             Intent widgetIntent = new Intent(context, FloatingViewService.class);
-            widgetIntent.putExtra("your_key_here", "dsa");
+            widgetIntent.putExtra("keyExtra", "yes");
             widgetIntent.setAction("android.intent.action.SEND");
             PendingIntent pendingIntent = PendingIntent.getService(context,
                     0, widgetIntent, 0);

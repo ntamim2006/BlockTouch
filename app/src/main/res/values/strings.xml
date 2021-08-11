@@ -3,5 +3,9 @@
     <string name="action_settings">Settings</string>
     <string name="hello_world">Hello world!</string>
     <string name="coordinates">Touch at some point in the canvas</string>
+    <string name="screen_is_open">מסך המכשיר פעיל</string>
+    <string name="screen_is_close">מסך המכשיר מושבת</string>
+    <string name="screen_open_click_to_close">מסך המכשיר פעיל, לחץ לנעילה</string>
+    <string name="screen_locked_click_to_open">מסך המכשיר נעול, לחץ לפתיחה</string>
 
 </resources>

@@ -23,23 +23,22 @@ import android.widget.Toast;
 import androidx.core.content.ContextCompat;
 
 public class FloatingViewService extends Service implements View.OnClickListener{
+    private static final String ACTION_EXIT 		= "com.nt.ourgame.game_zone_activities.action_exit";
 
 
     private WindowManager mWindowManager;
     private View mFloatingView;
     private View expandedView;
-    Handler handler;
-    Handler handler2;
-    Handler handler3;
-    Handler handler4;
+    Handler handler = new Handler();;
+    Handler handler_close_auto = new Handler();;
+
     Handler handler_double;
     int i=0;
     boolean ifHasExtra = false;
     private boolean ifLock = false;
     private boolean ifLayoutOpen = true;
-    private boolean ifKidMode = false;
-    Button b;
-    ImageView imageLock, minusBtn, exitBtn, drawer;
+    Button btn;
+    ImageView imageLock, exitBtn, drawer;
     WindowManager.LayoutParams params;
     int LAYOUT_FLAG;
     public FloatingViewService() {
@@ -47,14 +46,56 @@ public class FloatingViewService extends Service implements View.OnClickListener
     }
 
     LinearLayout lin;
+    Intent intent = new Intent();
 
 
     @SuppressLint("ClickableViewAccessibility")
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        this.intent = intent;
+        ifHasExtra = intent.hasExtra("keyExtra");
 
-        ifHasExtra = intent.hasExtra("your_key_here");
 
+        if(!ifHasExtra){
+            //click from notification
+            if (ifLock){
+                openPhoneFromNotification();
+            }else{
+                closePhoneFromNotification();
+            }
+
+        }else{
+            //click from MainActivity button
+            updateNotification(false);
+        }
+
+
+        //click from system panel
+        if(intent.hasExtra("lock_state")) {
+            if (intent.getStringExtra("lock_state").equals("open")) {
+                closePhoneFromNotification();
+            }else{
+                openPhoneFromNotification();
+            }
+        }
+
+
+
+
+        return super.onStartCommand(intent, flags, startId);
+    }
+
+
+
+                @Override
+    public IBinder onBind(Intent intent) {
+            return null;
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        ifHasExtra = intent.hasExtra("extra_key");
 
 
         //getting the widget layout from xml using layout inflater
@@ -62,7 +103,7 @@ public class FloatingViewService extends Service implements View.OnClickListener
         drawer = mFloatingView.findViewById(R.id.drawer);
         exitBtn = mFloatingView.findViewById(R.id.close_btn);
         lin = mFloatingView.findViewById(R.id.lin);
-        b = mFloatingView.findViewById(R.id.background_btn);
+        btn = mFloatingView.findViewById(R.id.background_btn);
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             LAYOUT_FLAG = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
@@ -98,55 +139,22 @@ public class FloatingViewService extends Service implements View.OnClickListener
         mFloatingView.findViewById(R.id.close_btn).setOnClickListener(this);
         expandedView.setOnClickListener(this);
         drawer.setOnClickListener(this);
-        minusBtn.setOnClickListener(this);
 
-        if(!ifHasExtra){
-            closePhone(false);
-        }
 
-        b.setOnClickListener(v -> {
+        btn.setOnClickListener(v -> {
 
             i++;
-
             handler_double = new Handler();
-            handler_double.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    if(i==2){
-                        lin.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.shape_with_corner_back));
-
-                        openPhone(true);
-                        //if you want close automatically
-//                        handler4 = new Handler();
-//                        handler4.postDelayed(() -> {
-//                            //write your code here to be executed after 1 second
-//                            closePhone(true);
-//
-//                        }, 1500);
-
-                    }
-                    i=0;
+            handler_double.postDelayed(() -> {
+                if(i==2){
+                    lin.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.shape_with_corner_back));
+                    openPhoneFromClickTwice();
                 }
+                i=0;
             }, 300);
 
 
         });
-
-
-        return super.onStartCommand(intent, flags, startId);
-    }
-
-
-
-                @Override
-    public IBinder onBind(Intent intent) {
-            return null;
-    }
-
-    @Override
-    public void onCreate() {
-        super.onCreate();
-
     }
 
 
@@ -159,94 +167,87 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
     @Override
     public void onClick(View v) {
-
-        switch (v.getId()) {
-
-            case R.id.drawer:
-
-
+            if(v.getId() == R.id.drawer){
                 if(ifLayoutOpen){
                     closeDrawer();
 
-
                 }else{
-                    openDrawer();
-                    Animation rightSwipe = AnimationUtils.loadAnimation(this, R.anim.left_to_right_animation);
+                    openDrawer(false, ifLock,true);
+                }
+            }else if (v.getId() == R.id.blockTouchButton) {
 
-
-                    lin.startAnimation(rightSwipe);
+                if (handler != null) {
+                    handler.removeCallbacksAndMessages(null);
+                }
+                if (handler_close_auto != null) {
+                    handler_close_auto.removeCallbacksAndMessages(null);
+                }
+                if (handler_double != null) {
+                    handler_double.removeCallbacksAndMessages(null);
                 }
 
+                //switching views
+                if (ifLock) {
+                    openPhone();
+                    updateNotification(false);
+                } else {
+                    closePhone();
+                    updateNotification(true);
+                }
 
-
-                break;
-
-            case R.id.blockTouchButton:
-
-
-                    if(handler!=null){
-                        handler.removeCallbacksAndMessages(null);
-                    }
-                    if(handler2!=null){
-                        handler2.removeCallbacksAndMessages(null);
-                    }
-                    if(handler3!=null){
-                        handler3.removeCallbacksAndMessages(null);
-                    }
-                    if(handler4!=null){
-                        handler4.removeCallbacksAndMessages(null);
-                    }
-                    if(handler_double!=null){
-                        handler_double.removeCallbacksAndMessages(null);
-                    }
-
-                    //switching views
-                    if(ifLock){
-                        openPhone(false);
-                    }else{
-                        closePhone(false);
-                    }
-
-                break;
-
-
-            case R.id.close_btn:
+            }else if(v.getId() == R.id.close_btn){
+                    // click on close btn
+                    Intent serviceIntent = new Intent(this, NotificationService.class);
+                    stopService(serviceIntent);
                     stopSelf();
-                break;
 
         }
     }
 
-    private void openDrawer() {
-        if(handler3!=null){
-            handler3.removeCallbacksAndMessages(null);
-        }
+
+
+    private void openDrawer(boolean dim, boolean screenLocked, boolean enableClick) {
+        // change the drawer ui if the screen is locked or open
+
         lin.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.shape_with_corner_back));
-
-        if(ifLock){
-            imageLock.setImageResource(R.drawable.lock_sign_close_2);
+        if(dim){
+            if(screenLocked){
+                imageLock.setImageResource(R.drawable.lock_sign_close_2_dimmed);
+            }
+            else{
+                imageLock.setImageResource(R.drawable.lock_sign_open_dimmed);
+            }
+            exitBtn.setImageResource(R.drawable.close_btn_icon_dimmed);
+            drawer.setImageResource(R.drawable.open_drawer_icon_dim);
+        }else{
+            if(screenLocked){
+                imageLock.setImageResource(R.drawable.lock_sign_close_2);
+            }
+            else{
+                imageLock.setImageResource(R.drawable.lock_sign_open);
+            }
+            exitBtn.setImageResource(R.drawable.close_btn_icon);
+            drawer.setImageResource(R.drawable.open_drawer_icon);
         }
-        else{
-            imageLock.setImageResource(R.drawable.lock_sign_open);
-        }
-
-
-        exitBtn.setImageResource(R.drawable.close_btn_icon);
-
-        drawer.setImageResource(R.drawable.open_drawer_icon);
 
         imageLock.setVisibility(View.VISIBLE);
         exitBtn.setVisibility(View.VISIBLE);
-        handler3 = new Handler();
-        handler3.postDelayed(() -> {
-            //write your code here to be executed after 1 second
-            dim();
-        }, 2000);
+
         ifLayoutOpen=true;
+
+        // check if the lock button need to be enabled or disabled
+        if(enableClick){
+            imageLock.setEnabled(true);
+        }
+
+        Animation rightSwipe = AnimationUtils.loadAnimation(this, R.anim.left_to_right_animation);
+        lin.startAnimation(rightSwipe);
 
     }
 
     private void dim() {
+        // change all the ui elements to there dimmed images
+
         if(ifLock){
             imageLock.setImageResource(R.drawable.lock_sign_close_2_dimmed);
         }
@@ -294,7 +295,7 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
 
 
-    private void closePhone(boolean ifToClose) {
+    private void closePhone() {
         params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.MATCH_PARENT,
                 WindowManager.LayoutParams.MATCH_PARENT,
@@ -307,22 +308,82 @@ public class FloatingViewService extends Service implements View.OnClickListener
         exitBtn.setImageResource(R.drawable.close_btn_icon);
         drawer.setImageResource(R.drawable.open_drawer_icon);
 
-        Toast.makeText(this, "מסך המכשיר נעול", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, R.string.screen_is_close, Toast.LENGTH_SHORT).show();
         ifLock=!ifLock;
 
-        b.setVisibility(View.VISIBLE);
-        handler3 = new Handler();
-        if(ifToClose) {
-            handler3.postDelayed(this::closeDrawer, 1000);
+        btn.setVisibility(View.VISIBLE);
+        handler_close_auto = new Handler();
+
+        handler_close_auto.postDelayed(() -> {
+            dim();
+            //write your code here to be executed after 1 second
+            new Handler().postDelayed(this::closeDrawer, 500);
+        }, 1500);
 
 
-        }else {
-            handler3.postDelayed(() -> {
+        params.gravity = Gravity.TOP | Gravity.START;        //Initially view will be added to top-left corner
+        params.x = 0;
+        params.y = 0;
+
+        mWindowManager.updateViewLayout(mFloatingView, params);
+    }
+
+    private void closePhoneFromNotification() {
+        openDrawer(false, true, true);
+        params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.MATCH_PARENT,
+                WindowManager.LayoutParams.MATCH_PARENT,
+                LAYOUT_FLAG,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        ifLock = true;
+
+        Toast.makeText(this, R.string.screen_is_close, Toast.LENGTH_SHORT).show();
+
+
+        btn.setVisibility(View.VISIBLE);
+        handler_close_auto = new Handler();
+        handler_close_auto.postDelayed(() -> {
                 dim();
                 //write your code here to be executed after 1 second
                 new Handler().postDelayed(this::closeDrawer, 500);
             }, 1500);
-        }
+
+        updateNotification(true);
+
+        params.gravity = Gravity.TOP | Gravity.START;        //Initially view will be added to top-left corner
+        params.x = 0;
+        params.y = 0;
+
+        mWindowManager.updateViewLayout(mFloatingView, params);
+    }
+
+    private void openPhoneFromNotification() {
+
+        handler.removeCallbacksAndMessages(null);
+        openDrawer(false, false, true);
+        btn.setVisibility(View.GONE);
+        params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                LAYOUT_FLAG,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+        ifLock = false;
+
+        Toast.makeText(this, R.string.screen_is_open, Toast.LENGTH_SHORT).show();
+
+
+        handler_close_auto = new Handler();
+        handler_close_auto.postDelayed(() -> {
+            dim();
+            //write your code here to be executed after 1 second
+            new Handler().postDelayed(this::closeDrawer, 500);
+        }, 1500);
+
+        updateNotification(false);
 
         params.gravity = Gravity.TOP | Gravity.START;        //Initially view will be added to top-left corner
         params.x = 0;
@@ -330,10 +391,52 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
         mWindowManager.updateViewLayout(mFloatingView, params);
 
+
+
+
+
     }
 
-    private void openPhone(boolean fromClickTwice) {
-        b.setVisibility(View.GONE);
+    private void openPhoneFromClickTwice(){
+
+        openDrawer(true, false, false);
+        btn.setVisibility(View.GONE);
+        ifLock = false;
+
+        params = new WindowManager.LayoutParams(
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                WindowManager.LayoutParams.WRAP_CONTENT,
+                LAYOUT_FLAG,
+                WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
+                PixelFormat.TRANSLUCENT);
+
+
+        Toast.makeText(this, R.string.screen_is_open, Toast.LENGTH_SHORT).show();
+        ifLock=!ifLock;
+
+
+        //write your code here to be executed after 1 second
+        handler.postDelayed(() -> {
+            imageLock.setImageResource(R.drawable.lock_sign_close_2_dimmed);
+            btn.setVisibility(View.VISIBLE);
+            ifLock = true;
+            closeDrawer();
+            Toast.makeText(this, R.string.screen_is_close, Toast.LENGTH_SHORT).show();
+        }, 3000);
+
+
+        params.gravity = Gravity.TOP | Gravity.START;        //Initially view will be added to top-left corner
+        params.x = 0;
+        params.y = 0;
+
+        mWindowManager.updateViewLayout(mFloatingView, params);
+
+
+    }
+
+    private void openPhone() {
+        btn.setVisibility(View.GONE);
+        lin.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.shape_with_corner_back));
 
         params = new WindowManager.LayoutParams(
                 WindowManager.LayoutParams.WRAP_CONTENT,
@@ -349,11 +452,6 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
 
         imageLock.setImageResource(R.drawable.lock_sign_open);
-
-        if(fromClickTwice){
-            Animation rightSwipe = AnimationUtils.loadAnimation(this, R.anim.left_to_right_animation);
-            lin.startAnimation(rightSwipe);
-        }
 
         Toast.makeText(this, "מסך המכשיר פעיל", Toast.LENGTH_SHORT).show();
         ifLock=!ifLock;
@@ -371,4 +469,21 @@ public class FloatingViewService extends Service implements View.OnClickListener
 
         mWindowManager.updateViewLayout(mFloatingView, params);
     }
+
+    private void updateNotification(boolean state){
+        // update the notification with the change of the screen lock state
+        Intent serviceIntent;
+        serviceIntent = new Intent(this, NotificationService.class);
+        serviceIntent.putExtra("inputExtra", "serviceIntentExtra");
+        if (state){
+            serviceIntent.putExtra("lock_state", "open");
+        }else{
+            serviceIntent.putExtra("lock_state", "close");
+        }
+        ContextCompat.startForegroundService(this, serviceIntent);
+
+    }
+
+
+
 }
